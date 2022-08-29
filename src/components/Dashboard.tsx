@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Layout, DatePicker, Avatar, Collapse, Input, notification   } from 'antd';
-import { useDispatch } from "react-redux";
 import { AntDesignOutlined } from '@ant-design/icons';
 import MapContainer from './MapContainer';
+import { MarkerMappers } from '../services/MarkersMapper';
+import { marker } from '../types/SingleMarker';
 
 
 function Dashboard() {
@@ -11,11 +12,40 @@ function Dashboard() {
     {
       "id": 2,
       "objectNo": "1010100",
+      "description" : "Tool description for 2",
       "currentLocation": {
         "type": "Point",
         "coordinates": [
           6.927079,
           79.861244
+        ]
+      },
+      "loggedTime": "2022-08-12 11:07:13.622",
+      "kioskNo": "k02"
+    },
+    {
+      "id": 3,
+      "objectNo": "1010100",
+      "description" : "Tool description for 3",
+      "currentLocation": {
+        "type": "Point",
+        "coordinates": [
+          5.927079,
+          78.861244
+        ]
+      },
+      "loggedTime": "2022-07-17 14:07:13.622",
+      "kioskNo": "k03"
+    },
+    {
+      "id": 4,
+      "objectNo": "1010112",
+      "description" : "Tool description for 4",
+      "currentLocation": {
+        "type": "Point",
+        "coordinates": [
+          7.927079,
+          73.861244
         ]
       },
       "loggedTime": "2022-08-12 11:07:13.622",
@@ -30,12 +60,16 @@ function Dashboard() {
 
   const { RangePicker } = DatePicker;
 
-  const [marker, setMarker] = useState({
-    objectName: "",
-    lastUpdated: "",
-    lat: 0,
-    lng: 0
-  });
+  const [markers, setMarkers] = useState([{
+        id: 0,
+        objectName: "",
+        lastUpdated: "",
+        description: "",
+        position: {
+          lat: 0,
+          lng: 0
+        }
+      }]);
 
   const openNotification = () => {
     notification.open({
@@ -47,25 +81,55 @@ function Dashboard() {
       },
     });
   };
+
+  const updateMarker = (dummyMarker: any, value: string) => {
+    //console.log(dummyMarker)
+    if(dummyMarker !== null){
+      const dataSource: any[] = [];
+      dummyMarker.map((info: any) => {
+        if(info.objectNo == value){
+        const data : marker = {
+            id: info.id,
+            objectName: info.objectNo,
+            lastUpdated: info.loggedTime,
+            description: info.description,
+            position: {
+              lat:info.currentLocation.coordinates[0],
+              lng:info.currentLocation.coordinates[1]
+            }
+        }  
+        dataSource.push(data);
+        }
+    })
+        //const objects = MarkerMappers(dummyMarker, value)
+        setMarkers(dataSource)
+        console.log(markers)
+    } else{
+      openNotification();
+      setMarkers([{
+        id: 0,
+        objectName: "",
+        lastUpdated: "",
+        description: "",
+        position: {
+          lat: 0,
+          lng: 0
+        }
+      }]);
+
+    }
+  }
+  
+
   const onSearch = (value: string) => {
     console.log(value);
-    fetch(`http://localhost:8080/api/product/location/current/?objectNo=${value}`)
+    fetch(`https://jsonplaceholder.typicode.com/todos/1`)
         .then(res => res.json())
         .then(res =>
-          console.log(res)
+          updateMarker(dummyMarker, value)
+          //console.log(res)
         );
-        //TODO : Replace dummyMarker with respons object
-        if(dummyMarker[0].objectNo == value){
-          setMarker({
-            objectName: dummyMarker[0].objectNo,
-            lastUpdated: dummyMarker[0].loggedTime,
-            lat : dummyMarker[0].currentLocation.coordinates[0],
-            lng : dummyMarker[0].currentLocation.coordinates[1],
-          });
-        }
-        else{
-          openNotification();
-        }
+        
   };
   
   return (
@@ -90,9 +154,7 @@ function Dashboard() {
         
       <Search placeholder="input search text" onSearch={onSearch} enterButton style={{ width: 450 }} />
         <Content>
-          <MapContainer 
-          marker={marker}
-          />
+          <MapContainer markers={markers} />
         </Content>
       </Layout>
     </Layout>

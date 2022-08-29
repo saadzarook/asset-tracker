@@ -1,10 +1,13 @@
 import React, { Component } from "react";
 import { Map, InfoWindow, Marker, GoogleApiWrapper } from "google-maps-react";
 
+
+
 export class MapContainer extends Component {
   constructor(props) {
     super(props);
     this.onMarkerClick = this.onMarkerClick.bind(this);
+
     this.state = {
       showingInfoWindow: false,
       activeMarker: {},
@@ -18,6 +21,21 @@ export class MapContainer extends Component {
       showingInfoWindow: true
     });
   }
+
+
+  onClose = props => {
+    if (this.state.showingInfoWindow) {
+      this.setState({
+        showingInfoWindow: false,
+        activeMarker: null
+      });
+    }
+  };
+
+  
+
+
+
   render() {
     if (!this.props.google) {
       return <div>Loading...</div>;
@@ -27,32 +45,28 @@ export class MapContainer extends Component {
       <div>
         <Map 
         google={this.props.google}
-        center={{
-         lat: this.props.marker.lat,
-         lng: this.props.marker.lng
-        }
-        }
-        zoom={10}
+        center={this.props.markers[0].position}
+        zoom={8}
         onClick={this.onMapClicked}
+        style={{width: '80%', height: '100%', position: 'relative'}}
         >
-          <Marker
-          position = {{
-            lat: this.props.marker.lat,
-            lng: this.props.marker.lng
-           }}
-          icon={'http://maps.google.com/mapfiles/arrow.png'}
-          onClick={this.onMarkerClick}
-          name={this.props.marker.objectName}
-        />
-        <InfoWindow
+        {this.props.markers.map((marker) => (
+        <Marker
+        key={marker.id}
+        title={marker.objectName}
+        name={marker.description}
+        position={marker.position}
+        onClick={this.onMarkerClick}
+      />
+      ))}
+      <InfoWindow
           marker={this.state.activeMarker}
           visible={this.state.showingInfoWindow}
           onClose={this.onClose}
         >
           <div>
-            <h4>Object ID: {this.state.selectedPlace.name}</h4>
-            <h4>Product Description: Tool Description</h4>
-            <h4>Last Updated: {this.props.marker.lastUpdated}</h4>
+            <h4>{this.state.selectedPlace.title}</h4>
+            <h4>{this.state.selectedPlace.name}</h4>
           </div>
         </InfoWindow>
         </Map>
@@ -61,6 +75,6 @@ export class MapContainer extends Component {
   }
 }
 export default GoogleApiWrapper({
-  apiKey: "",
+  apiKey: "AIzaSyCw6ROA0bN6K187-zO-1zoUy1Oog8AyUNo",
   
 })(MapContainer);
