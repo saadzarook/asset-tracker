@@ -87,7 +87,7 @@ function Dashboard() {
     if(dummyMarker !== null){
       const dataSource: any[] = [];
       dummyMarker.map((info: any) => {
-        if(info.objectNo == value){
+        if(info.objectNo === value){
         const data : marker = {
             id: info.id,
             objectName: info.objectNo,
