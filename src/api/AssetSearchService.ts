@@ -1,4 +1,4 @@
-export async function findObjectByID(id) {
+export async function findObjectByID(id: Number) {
     console.log(id);
     const response = await fetch(`api/product/location/current/?objectNo=` + {id}, {
         method: 'POST',

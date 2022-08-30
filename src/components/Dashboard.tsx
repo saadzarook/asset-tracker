@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Layout, DatePicker, Avatar, Collapse, Input, notification   } from 'antd';
+import { Layout, DatePicker, Avatar, Collapse, Input, notification, Button   } from 'antd';
 import { AntDesignOutlined } from '@ant-design/icons';
 import MapContainer from './MapContainer';
-import { MarkerMappers } from '../services/MarkersMapper';
-import { marker } from '../types/SingleMarker';
+import { MarkersMappers } from '../services/MarkersMapper';
+import { MapWithADrawingManager } from './GeoFenceMap';
 
 
 function Dashboard() {
@@ -60,6 +60,22 @@ function Dashboard() {
 
   const { RangePicker } = DatePicker;
 
+  const [activeTab, setActiveTab] = useState("1");
+  const [LocationList, setLocationList] = useState([]);
+
+
+  const onPolygonComplete = (polygon: any) => {
+    setLocationList(
+      polygon
+        .getPath()
+        .getArray()
+        .map((point: any) => ({
+          lat: point.lat(),
+          lng: point.lng(),
+        }))
+    )
+  }
+
   const [markers, setMarkers] = useState([{
         id: 0,
         objectName: "",
@@ -85,23 +101,7 @@ function Dashboard() {
   const updateMarker = (dummyMarker: any, value: string) => {
     //console.log(dummyMarker)
     if(dummyMarker !== null){
-      const dataSource: any[] = [];
-      dummyMarker.map((info: any) => {
-        if(info.objectNo === value){
-        const data : marker = {
-            id: info.id,
-            objectName: info.objectNo,
-            lastUpdated: info.loggedTime,
-            description: info.description,
-            position: {
-              lat:info.currentLocation.coordinates[0],
-              lng:info.currentLocation.coordinates[1]
-            }
-        }  
-        dataSource.push(data);
-        }
-    })
-        //const objects = MarkerMappers(dummyMarker, value)
+      const dataSource = MarkersMappers(dummyMarker, value)
         setMarkers(dataSource)
         console.log(markers)
     } else{
@@ -131,6 +131,10 @@ function Dashboard() {
         );
         
   };
+
+  const addGeofence = () => {
+    console.log(LocationList);
+  }
   
   return (
     <>
@@ -140,11 +144,14 @@ function Dashboard() {
     size={{ xs: 24, sm: 32, md: 40, lg: 64, xl: 80, xxl: 100 }}
     icon={<AntDesignOutlined />} 
   />
-  <Collapse accordion>
+  <Collapse accordion onChange={(key) => setActiveTab(key[0])}>
     <Panel header="Asset History" key="1">
       <RangePicker showTime />
     </Panel>
     <Panel header="Geofences" key="2">
+      <div>
+      <Button type="primary" onClick={addGeofence}>Add Geofence</Button>
+      </div>
     </Panel>
     <Panel header="Configurations" key="3">
     </Panel>
@@ -154,7 +161,11 @@ function Dashboard() {
         
       <Search placeholder="input search text" onSearch={onSearch} enterButton style={{ width: 450 }} />
         <Content>
+          {activeTab === "1" ? 
           <MapContainer markers={markers} />
+          : <MapWithADrawingManager onPolygonComplete={onPolygonComplete}/>
+          }
+          
         </Content>
       </Layout>
     </Layout>
